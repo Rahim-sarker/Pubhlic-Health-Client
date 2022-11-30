@@ -1,16 +1,18 @@
-import React, { useEffect } from "react";
+import React from "react";
 import auth from "../../firebase.init";
 import {
-  useSignInWithEmailAndPassword,
+  useCreateUserWithEmailAndPassword,
   useSignInWithGoogle,
+  useUpdateProfile,
 } from "react-firebase-hooks/auth";
 //step-1 start
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Loading from "./Loading";
 import { useForm } from "react-hook-form";
+import { async } from "@firebase/util";
 import useToken from "../../hooks/useToken";
 
-const Login = () => {
+const SignUp = () => {
   const [signInWithGoogle, gUser, gLoading, gError] = useSignInWithGoogle(auth);
   //step-1.5 start
   const {
@@ -21,45 +23,45 @@ const Login = () => {
   //step-1.5 end
 
   //step-5 start
-  const [signInWithEmailAndPassword, user, loading, error] =
-    useSignInWithEmailAndPassword(auth);
-
-  const [token] = useToken(user || gUser);
+  const [createUserWithEmailAndPassword, user, loading, error] =
+    useCreateUserWithEmailAndPassword(auth);
   //step-5 End
+  const [updateProfile, updating, updateError] = useUpdateProfile(auth);
+  const [token] = useToken(user || gUser);
+
+  const navigate = useNavigate(); //Navigation route setup
+
+  if (loading || gLoading || updating) {
+    console.log(user || gUser);
+  }
 
   //step-8 start
   let signInError;
-
-  const navigate = useNavigate(); //redirect location after login
-  const location = useLocation(); //redirect location after login
-  let from = location.state?.from?.pathname || "/"; //redirect location after login
-
-  useEffect(() => {
-    if (token) {
-      navigate(from, { replace: true });
-    }
-  }, [token, from, navigate]);
-
-  // if (user || gUser) {
-  //   navigate(from, { replace: true });
-  //   //redirect location after login
-  // }
 
   if (loading || gLoading) {
     return <Loading></Loading>;
   }
 
-  if (error || gError) {
+  if (error || gError || updateError) {
     signInError = (
-      <p className="text-red-500">{error?.message || error?.gError}</p>
+      <p className="text-red-500">
+        {error?.message || error?.gError || error?.updateError}
+      </p>
     );
   }
   //step-8 End
 
+  if (token) {
+    navigate("/appoinment");
+  }
+
   //step-2 start
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     console.log(data);
-    signInWithEmailAndPassword(data.email, data.password); //step-7 only write this function
+    await createUserWithEmailAndPassword(data.email, data.password); //step-7 only write this function
+    await updateProfile({ displayName: data.name });
+    console.log("Update done");
+    navigate("/appointment"); //Navigation route setup
   };
   //step-2 End
 
@@ -67,9 +69,36 @@ const Login = () => {
     <div className="flex h-screen justify-center items-center">
       <div class="card w-96 bg-base-100 shadow-xl">
         <div class="card-body">
-          <h2 class="text-2xl font-bold text-center">Login</h2>
+          <h2 class="text-2xl font-bold text-center">Sign Up</h2>
+
           {/* Step-3 */}
           <form onSubmit={handleSubmit(onSubmit)}>
+            {/* Name field start  */}
+            <div className="form-control w-full max-w-xs">
+              <label className="label">
+                <span className="label-text">Name</span>
+              </label>
+              <input
+                type="name"
+                placeholder="Your Name"
+                className="input input-bordered w-full max-w-xs"
+                {...register("name", {
+                  required: {
+                    value: true,
+                    message: "Name is required",
+                  },
+                })}
+              />
+              <label className="label">
+                {errors.name?.type === "required" && (
+                  <span className="label-text-alt text-red-500">
+                    {errors.name.message}
+                  </span>
+                )}
+              </label>
+            </div>
+            {/* Name field start  */}
+
             {/*Email form Start*/}
             <div class="form-control w-full max-w-xs">
               <label class="label">
@@ -149,15 +178,16 @@ const Login = () => {
             <input
               className="btn w-full max-w-xs text-white"
               type="submit"
-              value="Login"
+              value="Sign Up"
             />
             {/* Step-4 End */}
           </form>
 
           <p>
-            <small>New to Public Health Service?</small>
-            <Link className="text-secondary" to="/signup">
-              Create New Account
+            <small>Already have an account ? </small>
+
+            <Link className="text-secondary" to="/login">
+              Login
             </Link>
           </p>
 
@@ -171,4 +201,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default SignUp;
