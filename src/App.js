@@ -14,14 +14,19 @@ import Dashboard from "./Pages/Dashboard/Dashboard";
 import MyAppointment from "./Pages/Dashboard/MyAppointment";
 import MyReview from "./Pages/Dashboard/MyReview";
 import Users from "./Pages/Dashboard/Users";
+import AddDoctor from "./Pages/Dashboard/AddDoctor";
+import ManageDoctors from "./Pages/Dashboard/ManageDoctors";
+import Payment from "./Pages/Dashboard/Payment";
+import ContactUs from "./Pages/About/ContactUs";
 
 function App() {
   return (
-    <div className="max-w-7xl mx-auto px-12">
+    <div>
       <Navbar></Navbar>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="about" element={<About />} />
+        <Route path="contactus" element={<ContactUs />} />
         <Route
           path="appointment"
           element={
@@ -41,7 +46,26 @@ function App() {
         >
           <Route index element={<MyAppointment></MyAppointment>} />
           <Route path="myreview" element={<MyReview></MyReview>} />
+          <Route path="payment/:id" element={<Payment></Payment>} />
           <Route path="users" element={<Users></Users>} />
+          <Route
+            path="adddcotor"
+            element={
+              <RequireAuth>
+                {" "}
+                <AddDoctor></AddDoctor>{" "}
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="manageDoctors"
+            element={
+              <RequireAuth>
+                {" "}
+                <ManageDoctors></ManageDoctors>{" "}
+              </RequireAuth>
+            }
+          />
         </Route>
         {/* Dash Board end */}
 
